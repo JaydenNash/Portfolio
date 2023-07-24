@@ -1,0 +1,59 @@
+from bs4 import BeautifulSoup
+import requests
+import pandas as pd
+
+# Define the URL of the Wikipedia page containing the list of largest companies in the USA by revenue
+url = 'https://en.wikipedia.org/wiki/List_of_largest_companies_in_the_United_States_by_revenue'
+
+# Send an HTTP GET request to fetch the page content
+page = requests.get(url)
+
+# Parse the HTML content of the page using BeautifulSoup
+soup = BeautifulSoup(page.text, 'html.parser')
+
+# Print the parsed HTML content of the page
+print(soup)
+
+# Find the first table in the parsed HTML content
+table = soup.find('table')
+
+# Find the second table with the class 'wikitable sortable'
+table = soup.find('table', class_='wikitable sortable')
+
+# Print the second table
+print(table)
+
+# Find all the header cells (th) within the table
+world_titles = table.find_all('th')
+
+# Extract the text from the header cells and store them in a list
+world_table_titles = [title.text.strip() for title in world_titles]
+
+# Print the list of header titles
+print(world_table_titles)
+
+# Create an empty DataFrame with columns from the header titles
+df = pd.DataFrame(columns=world_table_titles)
+
+# Find all the rows (tr) within the table body
+column_data = table.find_all('tr')
+
+# Loop through each row starting from the second row (skip the header row)
+for row in column_data[1:]:
+    # Find all the data cells (td) within the row
+    row_data = row.find_all('td')
+    # Extract the text from the data cells and store them in a list
+    individual_row_data = [data.text.strip() for data in row_data]
+
+    # Get the current length of the DataFrame
+    length = len(df)
+    
+    # Add a new row to the DataFrame with the data from the current row
+    df.loc[length] = individual_row_data
+
+# Print the DataFrame
+print(df)
+
+# Save the DataFrame to a CSV file named 'top_companies_usa.csv' without index column
+df.to_csv('top_companies_usa.csv', index=False)
+
